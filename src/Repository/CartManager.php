@@ -7,11 +7,15 @@ namespace Raketa\BackendTestTask\Repository;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Raketa\BackendTestTask\Domain\Cart;
+use Raketa\BackendTestTask\Infrastructure\ConnectorException;
 use Raketa\BackendTestTask\Infrastructure\ConnectorFacade;
 
+/**
+ * Менеджер корзины
+ */
 class CartManager extends ConnectorFacade
 {
-    public $logger;
+    public LoggerInterface $logger;
 
     public function __construct($host, $port, $password)
     {
@@ -27,19 +31,21 @@ class CartManager extends ConnectorFacade
     /**
      * @inheritdoc
      */
-    public function saveCart(Cart $cart)
+    public function saveCart(Cart $cart): void
     {
         try {
-            $this->connector->set($cart, session_id());
-        } catch (Exception $e) {
-            $this->logger->error('Error');
+            $this->connector->set(session_id(), $cart);
+        } catch (ConnectorException $e) {
+            $this->logger->error('Error' . $e->getMessage());
         }
     }
 
     /**
+     * Получить Корзину
      * @return ?Cart
+     * @throws ConnectorException
      */
-    public function getCart()
+    public function getCart(): ?Cart
     {
         try {
             return $this->connector->get(session_id());
@@ -47,6 +53,6 @@ class CartManager extends ConnectorFacade
             $this->logger->error('Error');
         }
 
-        return new Cart(session_id(), []);
+        return new Cart(session_id(), []); // todo
     }
 }

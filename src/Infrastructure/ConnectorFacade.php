@@ -14,7 +14,8 @@ class ConnectorFacade
     public ?string $password = null;
     public ?int $dbindex = null;
 
-    public $connector;
+    /** @var Connector $connector */
+    public Connector $connector;
 
     public function __construct($host, $port, $password, $dbindex)
     {
@@ -29,20 +30,14 @@ class ConnectorFacade
         $redis = new Redis();
 
         try {
-            $isConnected = $redis->isConnected();
-            if (! $isConnected && $redis->ping('Pong')) {
-                $isConnected = $redis->connect(
-                    $this->host,
-                    $this->port,
-                );
+            $connect = $redis->connect($this->host, $this->port);
+            if ($connect && $redis->ping('Pong')) {
+                $redis->auth($this->password);
+                $redis->select($this->dbindex);
+                $this->connector = new Connector($redis);
             }
         } catch (RedisException) {
-        }
-
-        if ($isConnected) {
-            $redis->auth($this->password);
-            $redis->select($this->dbindex);
-            $this->connector = new Connector($redis);
+            throw new RedisException('Failed to connect to Redis server.');
         }
     }
 }

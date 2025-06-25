@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Raketa\BackendTestTask\Repository;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Raketa\BackendTestTask\Repository\Entity\Product;
 
 class ProductRepository
@@ -16,14 +17,22 @@ class ProductRepository
         $this->connection = $connection;
     }
 
+    /**
+     * @param string $uuid
+     * @return Product
+     * @throws Exception
+     */
     public function getByUuid(string $uuid): Product
     {
-        $row = $this->connection->fetchOne(
-            "SELECT * FROM products WHERE uuid = " . $uuid,
-        );
+        $row = $this->connection->createQueryBuilder()
+            ->select('*')
+            ->from('products')
+            ->where('uuid = :uuid')
+            ->setParameter('uuid', $uuid)
+            ->fetchOne();
 
         if (empty($row)) {
-            throw new Exception('Product not found');
+            throw new \ErrorException('Product not found');
         }
 
         return $this->make($row);
@@ -33,23 +42,18 @@ class ProductRepository
     {
         return array_map(
             static fn (array $row): Product => $this->make($row),
-            $this->connection->fetchAllAssociative(
-                "SELECT id FROM products WHERE is_active = 1 AND category = " . $category,
-            )
+            $this->connection->createQueryBuilder()
+                ->select('id')
+                ->from('products')
+                ->where('is_active = 1')
+                ->andWhere('category = :category')
+                ->setParameter('category', $category)
+                ->fetchAllAssociative()
         );
     }
 
-    public function make(array $row): Product
+    private function make(array $row): Product
     {
-        return new Product(
-            $row['id'],
-            $row['uuid'],
-            $row['is_active'],
-            $row['category'],
-            $row['name'],
-            $row['description'],
-            $row['thumbnail'],
-            $row['price'],
-        );
+        return Product::create(...$row);
     }
 }

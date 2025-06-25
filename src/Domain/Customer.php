@@ -4,6 +4,14 @@ declare(strict_types = 1);
 
 namespace Raketa\BackendTestTask\Domain;
 
+/**
+ * Клиент
+ *
+ * @var $firstName  string Имя
+ * @var $lastName   string Фамилия
+ * @var $middleName string Отчество
+ * @var $email      string email
+ */
 final readonly class Customer
 {
     public function __construct(

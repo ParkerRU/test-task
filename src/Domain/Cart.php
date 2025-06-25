@@ -4,6 +4,14 @@ declare(strict_types = 1);
 
 namespace Raketa\BackendTestTask\Domain;
 
+/**
+ * Корзина
+ *
+ * @var $uuid string uuid
+ * @var $customer Customer Клиент
+ * @var $paymentMethod string Метод оплаты
+ * @var $items array массив предметов
+ */
 final class Cart
 {
     public function __construct(

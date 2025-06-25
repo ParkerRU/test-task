@@ -20,7 +20,7 @@ class Connector
     /**
      * @throws ConnectorException
      */
-    public function get(Cart $key)
+    public function get(string $key): mixed
     {
         try {
             return unserialize($this->redis->get($key));
@@ -32,7 +32,7 @@ class Connector
     /**
      * @throws ConnectorException
      */
-    public function set(string $key, Cart $value)
+    public function set(string $key, Cart $value): void
     {
         try {
             $this->redis->setex($key, 24 * 60 * 60, serialize($value));
